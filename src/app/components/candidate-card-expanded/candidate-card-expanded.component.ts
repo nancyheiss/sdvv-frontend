@@ -1,8 +1,8 @@
 import * as pluginDataLabels from 'chartjs-plugin-datalabels';
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, ViewChild } from '@angular/core';
 import { ChartOptions, ChartType, ChartDataSets } from 'chart.js';
 import { Candidate } from '../../candidate';
-import { Color } from 'ng2-charts';
+import { BaseChartDirective, Color } from 'ng2-charts';
 import { MatTableDataSource } from '@angular/material';
 
 const placeholder_data = [
@@ -22,6 +22,8 @@ export class CandidateCardExpandedComponent implements OnInit {
   @Input() candidate: Candidate;
   @Input() candidateImg: string;
   @Output() isExpanded = new EventEmitter<boolean>();
+  
+  @ViewChild(BaseChartDirective) public chart: BaseChartDirective;
 
   // Industry Table
   displayedColumns: string[];
@@ -225,10 +227,20 @@ export class CandidateCardExpandedComponent implements OnInit {
 
   constructor() { }
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (!changes.candidate.previousValue) {
+      return;
+    } else {
+      this.setChartsData(changes.candidate.currentValue);
+      this.setTableData(changes.candidate.currentValue);
+      this.chart.chart.update();
+    }
+  }
+
   ngOnInit() {
-    this.setChartsData();
+    this.setChartsData(this.candidate);
     this.setDisplayedColumns();
-    this.setTableData();
+    this.setTableData(this.candidate);
   }
 
   // Setting By Industry Table
@@ -241,37 +253,37 @@ export class CandidateCardExpandedComponent implements OnInit {
     ];
   }
 
-  setTableData() {
+  setTableData(candidate: Candidate) {
     const topFiveIndustries = [
       {
         colorCode: '#007431',
-        industry: this.candidate['by industry'][0]['industry 1'][0],
-        amount: Number(this.candidate['by industry'][0]['industry 1'][1]),
-        percentage: Number(this.candidate['by industry'][0]['industry 1'][2]),
+        industry: candidate['by industry'][0]['industry 1'][0],
+        amount: Number(candidate['by industry'][0]['industry 1'][1]),
+        percentage: Number(candidate['by industry'][0]['industry 1'][2]),
       },
       {
         colorCode: '#00903d',
-        industry: this.candidate['by industry'][0]['industry 2'][0],
-        amount: Number(this.candidate['by industry'][0]['industry 2'][1]),
-        percentage: Number(this.candidate['by industry'][0]['industry 2'][2]),
+        industry: candidate['by industry'][0]['industry 2'][0],
+        amount: Number(candidate['by industry'][0]['industry 2'][1]),
+        percentage: Number(candidate['by industry'][0]['industry 2'][2]),
       },
       {
         colorCode: '#00af4a',
-        industry: this.candidate['by industry'][0]['industry 3'][0],
-        amount: Number(this.candidate['by industry'][0]['industry 3'][1]),
-        percentage: Number(this.candidate['by industry'][0]['industry 3'][2]),
+        industry: candidate['by industry'][0]['industry 3'][0],
+        amount: Number(candidate['by industry'][0]['industry 3'][1]),
+        percentage: Number(candidate['by industry'][0]['industry 3'][2]),
       },
       {
         colorCode: '#00d359',
-        industry: this.candidate['by industry'][0]['industry 4'][0],
-        amount: Number(this.candidate['by industry'][0]['industry 4'][1]),
-        percentage: Number(this.candidate['by industry'][0]['industry 4'][2]),
+        industry: candidate['by industry'][0]['industry 4'][0],
+        amount: Number(candidate['by industry'][0]['industry 4'][1]),
+        percentage: Number(candidate['by industry'][0]['industry 4'][2]),
       },
       {
         colorCode: '#00fc6a',
-        industry: this.candidate['by industry'][0]['industry 5'][0],
-        amount: Number(this.candidate['by industry'][0]['industry 5'][1]),
-        percentage: Number(this.candidate['by industry'][0]['industry 5'][2]),
+        industry: candidate['by industry'][0]['industry 5'][0],
+        amount: Number(candidate['by industry'][0]['industry 5'][1]),
+        percentage: Number(candidate['by industry'][0]['industry 5'][2]),
       },
     ];
 
@@ -279,18 +291,18 @@ export class CandidateCardExpandedComponent implements OnInit {
   }
 
   // Setting Chart Data
-  setChartsData() {
+  setChartsData(candidate: Candidate) {
     // Raised v. Spent
-    this.barChartData[0].data[0] = this.currencyToNumber(this.candidate['raised vs spent'][0].Raised);
-    this.barChartData[1].data[0] = this.currencyToNumber(this.candidate['raised vs spent'][0].Spent);
+    this.barChartData[0].data[0] = this.currencyToNumber(candidate['raised vs spent'][0].Raised);
+    this.barChartData[1].data[0] = this.currencyToNumber(candidate['raised vs spent'][0].Spent);
 
     // In V. Out District
-    this.doughnutChartData[0] = this.currencyToNumber(this.candidate['in vs out district'][0].in);
-    this.doughnutChartData[1] = this.currencyToNumber(this.candidate['in vs out district'][0].out);
+    this.doughnutChartData[0] = this.currencyToNumber(candidate['in vs out district'][0].in);
+    this.doughnutChartData[1] = this.currencyToNumber(candidate['in vs out district'][0].out);
 
     // Oppose v. Support
-    this.stackedHorizontalBarChartData[0].data[0] = this.currencyToNumber(this.candidate['oppose']);
-    this.stackedHorizontalBarChartData[1].data[0] = this.currencyToNumber(this.candidate['support']);
+    this.stackedHorizontalBarChartData[0].data[0] = this.currencyToNumber(candidate['oppose']);
+    this.stackedHorizontalBarChartData[1].data[0] = this.currencyToNumber(candidate['support']);
   }
 
   // Convert Currency String to Number
